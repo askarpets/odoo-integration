@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
 
-from app.api.schemas.common import JSENDResponseFail
+from app.api.schemas import JSENDResponseFail
 from app.utils import init_app
 
 app = FastAPI(title="Odoo Integration")

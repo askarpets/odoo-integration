@@ -3,9 +3,9 @@ from typing import Annotated, Sequence
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.models import Invoice
 from app.api.services.invoices import invoices_service
 from app.db import get_session
+from app.models import Invoice
 
 router = APIRouter(prefix="/invoices", tags=["invoices"])
 
