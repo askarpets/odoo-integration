@@ -21,5 +21,5 @@ async def get_invoices(
 
 
 @router.get("/{invoice_id}", summary="Get an invoice by ID", response_model=Invoice)
-async def get_invoice(invoice_id: str, session: AsyncSession = Depends(get_session)) -> Invoice:
+async def get_invoice(invoice_id: int, session: AsyncSession = Depends(get_session)) -> Invoice:
     return await invoices_service.get_invoice(session, invoice_id)

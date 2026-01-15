@@ -17,7 +17,7 @@ class InvoicesService:
 
         return PaginatedResponse(items=items, total=total or 0)
 
-    async def get_invoice(self, session: AsyncSession, invoice_id: str) -> Invoice:
+    async def get_invoice(self, session: AsyncSession, invoice_id: int) -> Invoice:
         invoice = await session.get(Invoice, invoice_id)
         if not invoice:
             raise HTTPException(status_code=404, detail="Invoice not found")

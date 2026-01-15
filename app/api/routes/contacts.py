@@ -21,5 +21,5 @@ async def get_contacts(
 
 
 @router.get("/{contact_id}", summary="Get a contact by ID", response_model=Contact)
-async def get_contact(contact_id: str, session: AsyncSession = Depends(get_session)) -> Contact:
+async def get_contact(contact_id: int, session: AsyncSession = Depends(get_session)) -> Contact:
     return await contacts_service.get_contact(session, contact_id)

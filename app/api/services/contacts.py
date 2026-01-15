@@ -17,7 +17,7 @@ class ContactsService:
 
         return PaginatedResponse(items=items, total=total or 0)
 
-    async def get_contact(self, session: AsyncSession, contact_id: str) -> Contact:
+    async def get_contact(self, session: AsyncSession, contact_id: int) -> Contact:
         contact = await session.get(Contact, contact_id)
         if not contact:
             raise HTTPException(status_code=404, detail="Contact not found")

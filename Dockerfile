@@ -5,8 +5,9 @@ WORKDIR /app
 ENV PYTHONUNBUFFERED=1
 
 RUN pip install "poetry==2.2.1"
-COPY . /app
+COPY poetry.lock pyproject.toml ./
 RUN poetry config virtualenvs.create false && poetry install --only main --no-interaction --no-ansi --no-root
+COPY . /app
 
 EXPOSE 8080
 
