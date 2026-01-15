@@ -1,9 +1,12 @@
+import asyncio
 import ssl
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Type
 from xmlrpc.client import ServerProxy
 
-from app.models import Contact
+from pydantic import BaseModel
+
+from app.models import Contact, Invoice
 from app.settings import settings
 
 CONTACT_FIELDS = [
@@ -23,8 +26,29 @@ CONTACT_FIELDS = [
     "country_id",
     "write_date",
 ]
+INVOICE_FIELDS = [
+    "id",
+    "name",
+    "invoice_date",
+    "invoice_date_due",
+    "partner_id",
+    "currency_id",
+    "amount_untaxed",
+    "amount_tax",
+    "amount_total",
+    "amount_residual",
+    "payment_state",
+    "write_date",
+]
 CONTACT_MODEL = "res.partner"
+INVOICE_MODEL = "account.move"
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+
+
+def prepare_updated_at_field(updated_at: datetime | None) -> datetime:
+    updated_at = updated_at or datetime(1970, 1, 1)
+    updated_at = updated_at.astimezone(timezone.utc)
+    return updated_at
 
 
 class OdooClient:
@@ -42,39 +66,50 @@ class OdooClient:
 
         self._models = ServerProxy(f"{url}/xmlrpc/2/object", context=ssl_context, allow_none=True)
 
-    def _get_contacts_sync(self, updated_at: datetime | None = None) -> tuple[list[Contact], datetime]:
-        updated_at = updated_at or datetime(1970, 1, 1)
-        updated_at = updated_at.astimezone(timezone.utc)
-        domain = [["write_date", ">", updated_at.astimezone(timezone.utc).strftime(DATETIME_FORMAT)]]
+    def _get_items_sync(
+        self,
+        model_type: Type[BaseModel],
+        model_name: str,
+        fields: list[str],
+        limit: int = settings.ODOO_FETCH_LIMIT,
+        updated_at: datetime | None = None,
+    ) -> tuple[list[BaseModel], datetime]:
+        updated_at = prepare_updated_at_field(updated_at)
+        domain = [["write_date", ">", updated_at.strftime(DATETIME_FORMAT)]]
         offset = 0
-        out: list[Contact] = []
+        output: list[BaseModel] = []
 
         while True:
-            contacts: Any = self._models.execute_kw(
+            items: Any = self._models.execute_kw(
                 self._database,
                 self._uid,
                 self._password,
-                CONTACT_MODEL,
+                model_name,
                 "search_read",
                 [domain],
-                {
-                    "fields": CONTACT_FIELDS,
-                    "limit": settings.ODOO_FETCH_LIMIT,
-                    "offset": offset,
-                    "order": "write_date asc",
-                },
+                {"fields": fields, "limit": limit, "offset": offset, "order": "write_date asc"},
             )
-            if not contacts:
+            if not items:
                 break
 
-            for contact in contacts:
-                contact = Contact.model_validate(contact)
-                contact.write_date = contact.write_date.astimezone(timezone.utc)
-                if contact.write_date > updated_at:
-                    updated_at = contact.write_date
+            for item in items:
+                item = model_type.model_validate(item)
+                item.write_date = item.write_date.astimezone(timezone.utc)  # type: ignore
+                if item.write_date > updated_at:  # type: ignore
+                    updated_at = item.write_date  # type: ignore
 
-                out.append(contact)
+                output.append(item)
 
-            offset += len(contacts)
+            offset += len(items)
 
-        return out, updated_at
+        return output, updated_at
+
+    async def get_contacts(self, updated_at: datetime | None = None) -> tuple[list[Contact], datetime]:
+        return await asyncio.to_thread(
+            self._get_items_sync, Contact, CONTACT_MODEL, CONTACT_FIELDS, updated_at=updated_at  # type: ignore
+        )
+
+    async def get_invoices(self, updated_at: datetime | None = None) -> tuple[list[Invoice], datetime]:
+        return await asyncio.to_thread(
+            self._get_items_sync, Invoice, INVOICE_MODEL, INVOICE_FIELDS, updated_at=updated_at  # type: ignore
+        )
