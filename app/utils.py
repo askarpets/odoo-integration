@@ -6,7 +6,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse, Response
 
 from app.api.routers import api_router
-from app.api.schemas.common import JSENDResponseError
+from app.api.schemas import JSENDResponseError
 
 logger = logging.getLogger(__name__)
 

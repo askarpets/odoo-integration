@@ -1,8 +1,9 @@
-from typing import Annotated, Sequence
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.schemas import PaginatedResponse
 from app.api.services.invoices import invoices_service
 from app.db import get_session
 from app.models import Invoice
@@ -10,12 +11,12 @@ from app.models import Invoice
 router = APIRouter(prefix="/invoices", tags=["invoices"])
 
 
-@router.get("", summary="Get all invoices", response_model=Sequence[Invoice])
+@router.get("", summary="Get all invoices", response_model=PaginatedResponse[Invoice])
 async def get_invoices(
     limit: Annotated[int, Query(gt=0)] = 100,
     offset: Annotated[int, Query(ge=0)] = 0,
     session: AsyncSession = Depends(get_session),
-) -> Sequence[Invoice]:
+) -> PaginatedResponse[Invoice]:
     return await invoices_service.get_invoices(session, limit, offset)
 
 

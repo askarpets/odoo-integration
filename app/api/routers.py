@@ -3,7 +3,7 @@ from fastapi import APIRouter, status
 from app.api.routes.contacts import router as contacts_router
 from app.api.routes.health import router as health_router
 from app.api.routes.invoices import router as invoices_router
-from app.api.schemas.common import JSENDResponseError
+from app.api.schemas import JSENDResponseError
 
 api_router = APIRouter(prefix="/api")
 v1_router = APIRouter(

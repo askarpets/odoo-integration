@@ -1,7 +1,9 @@
 from enum import StrEnum
-from typing import Any
+from typing import Any, Generic, Sequence, TypeVar
 
 from pydantic import BaseModel, ConfigDict
+
+RecordType = TypeVar("RecordType")
 
 
 class ResponseStatus(StrEnum):
@@ -22,3 +24,8 @@ class JSENDResponseFail(JSENDResponse):
 
 class JSENDResponseError(JSENDResponse):
     status: ResponseStatus = ResponseStatus.error
+
+
+class PaginatedResponse(BaseModel, Generic[RecordType]):
+    items: Sequence[RecordType]
+    total: int

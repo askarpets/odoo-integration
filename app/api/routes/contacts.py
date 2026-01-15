@@ -1,8 +1,9 @@
-from typing import Annotated, Sequence
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.schemas import PaginatedResponse
 from app.api.services.contacts import contacts_service
 from app.db import get_session
 from app.models import Contact
@@ -10,12 +11,12 @@ from app.models import Contact
 router = APIRouter(prefix="/contacts", tags=["contacts"])
 
 
-@router.get("", summary="Get all contacts", response_model=Sequence[Contact])
+@router.get("", summary="Get all contacts", response_model=PaginatedResponse[Contact])
 async def get_contacts(
     limit: Annotated[int, Query(gt=0)] = 100,
     offset: Annotated[int, Query(ge=0)] = 0,
     session: AsyncSession = Depends(get_session),
-) -> Sequence[Contact]:
+) -> PaginatedResponse[Contact]:
     return await contacts_service.get_contacts(session, limit, offset)
 
 

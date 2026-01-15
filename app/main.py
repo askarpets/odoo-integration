@@ -5,7 +5,10 @@ from fastapi.responses import JSONResponse
 from app.api.schemas import JSENDResponseFail
 from app.utils import init_app
 
-app = FastAPI(title="Odoo Integration")
+app = FastAPI(
+    title="Odoo Integration",
+    docs_url="/api/docs",
+)
 init_app(app)
 
 
