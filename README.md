@@ -33,3 +33,6 @@ make up
 ## API Documentation
 
 Once the services are running, you can access the API documentation at http://localhost:8000/api/docs
+
+We assume that there is an external auth service that provides JWT tokens, which should be attached as request headers to get access to the resources.
+We use the signature public key to verify such tokens and check their expiration timestamps.  
