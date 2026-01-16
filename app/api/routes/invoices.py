@@ -1,9 +1,9 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.schemas import PaginatedResponse
+from app.api.schemas import JSENDResponseFail, PaginatedResponse
 from app.api.services.invoices import invoices_service
 from app.db import get_session
 from app.models import Invoice
@@ -20,6 +20,11 @@ async def get_invoices(
     return await invoices_service.get_invoices(session, limit, offset)
 
 
-@router.get("/{invoice_id}", summary="Get an invoice by ID", response_model=Invoice)
+@router.get(
+    "/{invoice_id}",
+    summary="Get an invoice by ID",
+    response_model=Invoice,
+    responses={status.HTTP_404_NOT_FOUND: {"model": JSENDResponseFail}},
+)
 async def get_invoice(invoice_id: int, session: AsyncSession = Depends(get_session)) -> Invoice:
     return await invoices_service.get_invoice(session, invoice_id)

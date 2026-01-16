@@ -1,6 +1,6 @@
 from typing import Sequence
 
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from sqlalchemy import func, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col, delete, select
@@ -36,7 +36,7 @@ class InvoicesService:
     async def get_invoice(self, session: AsyncSession, invoice_id: int) -> Invoice:
         invoice = await session.get(Invoice, invoice_id)
         if not invoice:
-            raise HTTPException(status_code=404, detail="Invoice not found")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invoice not found")
 
         return invoice
 
