@@ -6,6 +6,8 @@ from sqlmodel import Field, SQLModel
 
 
 class Contact(SQLModel, table=True):
+    __tablename__ = "contact"
+
     id: int = Field(primary_key=True)
     name: str
     email: str
@@ -45,6 +47,8 @@ class Contact(SQLModel, table=True):
 
 
 class Invoice(SQLModel, table=True):
+    __tablename__ = "invoice"
+
     id: int = Field(primary_key=True)
     name: str
     invoice_date: datetime

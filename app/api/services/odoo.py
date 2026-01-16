@@ -1,6 +1,6 @@
 import asyncio
 import ssl
-from datetime import datetime, timezone
+from datetime import timezone
 from typing import Any, Type
 from xmlrpc.client import ServerProxy
 
@@ -42,16 +42,9 @@ INVOICE_FIELDS = [
 ]
 CONTACT_MODEL = "res.partner"
 INVOICE_MODEL = "account.move"
-DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
-def prepare_updated_at_field(updated_at: datetime | None) -> datetime:
-    updated_at = updated_at or datetime(1970, 1, 1)
-    updated_at = updated_at.astimezone(timezone.utc)
-    return updated_at
-
-
-class OdooClient:
+class OdooService:
     def __init__(self, url: str, database: str, user: str, password: str) -> None:
         self._url = url
         self._database = database
@@ -72,10 +65,7 @@ class OdooClient:
         model_name: str,
         fields: list[str],
         limit: int = settings.ODOO_FETCH_LIMIT,
-        updated_at: datetime | None = None,
-    ) -> tuple[list[BaseModel], datetime]:
-        updated_at = prepare_updated_at_field(updated_at)
-        domain = [["write_date", ">", updated_at.strftime(DATETIME_FORMAT)]]
+    ) -> list[BaseModel]:
         offset = 0
         output: list[BaseModel] = []
 
@@ -86,7 +76,7 @@ class OdooClient:
                 self._password,
                 model_name,
                 "search_read",
-                [domain],
+                [],
                 {"fields": fields, "limit": limit, "offset": offset, "order": "write_date asc"},
             )
             if not items:
@@ -95,21 +85,23 @@ class OdooClient:
             for item in items:
                 item = model_type.model_validate(item)
                 item.write_date = item.write_date.astimezone(timezone.utc)  # type: ignore
-                if item.write_date > updated_at:  # type: ignore
-                    updated_at = item.write_date  # type: ignore
 
                 output.append(item)
 
             offset += len(items)
 
-        return output, updated_at
+        return output
 
-    async def get_contacts(self, updated_at: datetime | None = None) -> tuple[list[Contact], datetime]:
-        return await asyncio.to_thread(
-            self._get_items_sync, Contact, CONTACT_MODEL, CONTACT_FIELDS, updated_at=updated_at  # type: ignore
-        )
+    async def get_contacts(self) -> list[Contact]:
+        return await asyncio.to_thread(self._get_items_sync, Contact, CONTACT_MODEL, CONTACT_FIELDS)  # type: ignore
 
-    async def get_invoices(self, updated_at: datetime | None = None) -> tuple[list[Invoice], datetime]:
-        return await asyncio.to_thread(
-            self._get_items_sync, Invoice, INVOICE_MODEL, INVOICE_FIELDS, updated_at=updated_at  # type: ignore
-        )
+    async def get_invoices(self) -> list[Invoice]:
+        return await asyncio.to_thread(self._get_items_sync, Invoice, INVOICE_MODEL, INVOICE_FIELDS)  # type: ignore
+
+
+odoo_service = OdooService(
+    url=settings.ODOO_URL,
+    database=settings.ODOO_DATABASE,
+    user=settings.ODOO_USER,
+    password=settings.ODOO_PASSWORD,
+)

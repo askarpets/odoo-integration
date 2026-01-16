@@ -13,5 +13,7 @@ class Settings(BaseSettings):
     ODOO_PASSWORD: str = ""
     ODOO_FETCH_LIMIT: int = 100
 
+    SYNC_INTERVAL_MINUTES: int = 30
+
 
 settings = Settings()

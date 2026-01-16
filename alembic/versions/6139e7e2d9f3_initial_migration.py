@@ -30,13 +30,13 @@ def upgrade() -> None:
         sa.Column("vat", sa.String(), nullable=True),
         sa.Column("active", sa.Boolean(), nullable=False),
         sa.Column("is_company", sa.Boolean(), nullable=False),
-        sa.Column("company_name", sa.String(), nullable=False),
-        sa.Column("street", sa.String(), nullable=False),
+        sa.Column("company_name", sa.String(), nullable=True),
+        sa.Column("street", sa.String(), nullable=True),
         sa.Column("city", sa.String(), nullable=True),
         sa.Column("state", sa.String(), nullable=True),
         sa.Column("zip_code", sa.String(), nullable=True),
         sa.Column("country", sa.String(), nullable=True),
-        sa.Column("write_date", sa.DateTime(), nullable=False),
+        sa.Column("write_date", sa.DateTime(timezone=True), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
@@ -52,7 +52,7 @@ def upgrade() -> None:
         sa.Column("amount_tax", sa.Numeric(), nullable=True),
         sa.Column("amount_residual", sa.Numeric(), nullable=True),
         sa.Column("payment_state", sa.String(), nullable=True),
-        sa.Column("write_date", sa.DateTime(), nullable=False),
+        sa.Column("write_date", sa.DateTime(timezone=True), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
 
