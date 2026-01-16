@@ -1,6 +1,6 @@
 from typing import Sequence
 
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from sqlalchemy import func, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col, delete, select
@@ -38,7 +38,7 @@ class ContactsService:
     async def get_contact(self, session: AsyncSession, contact_id: int) -> Contact:
         contact = await session.get(Contact, contact_id)
         if not contact:
-            raise HTTPException(status_code=404, detail="Contact not found")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contact not found")
 
         return contact
 
